@@ -1,7 +1,11 @@
 from langchain_core.tools import tool
 import requests
+import os
+from dotenv import load_dotenv
 
-base_url = "https://app-api-aka-mss-dev-003.azurewebsites.net"
+load_dotenv()
+
+base_url = os.environ['API_BASE_URL']
 
 
 # Define allowed medical record values
