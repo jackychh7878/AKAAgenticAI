@@ -18,7 +18,6 @@ st.set_page_config(page_title="ICP Plan Chatbot", page_icon="🤖")
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-
 def initialize_agent():
     model = ChatOpenAI(model="gpt-4o-mini")
 
