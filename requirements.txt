@@ -1,0 +1,6 @@
+﻿langgraph
+langchain
+langchain-openai
+python-dotenv
+requests
+streamlit
