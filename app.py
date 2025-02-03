@@ -1,4 +1,6 @@
 import os
+import time
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -7,12 +9,25 @@ from langchain.agents import AgentExecutor, create_tool_calling_agent
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 
+from langgraph.prebuilt import create_react_agent
+from langgraph.checkpoint.memory import MemorySaver
+
 from src.tools import get_member_info, get_member_icp
 from src.prompt import SYSTEM_PROMPT
 
 
 # Page config
 st.set_page_config(page_title="ICP Plan Chatbot", page_icon="🤖")
+
+# Config the session id
+config = {
+    "configurable": {
+        "thread_id": "thread_01",
+        "checkpoint_ns": "checkpoint_ns_01",
+        "checkpoint_id": "checkpoint_id_01",
+    }
+}
+
 
 # Initialize session state for chat history
 if "messages" not in st.session_state:
@@ -26,9 +41,14 @@ def initialize_agent():
         ("human", "{input}"),
         ("placeholder", "{agent_scratchpad}"),
     ])
+    # prompt = SYSTEM_PROMPT
+
+    # Initialize memory to persist state between graph runs
+    # checkpointer = MemorySaver()
 
     tools = [get_member_info, get_member_icp]
     agent = create_tool_calling_agent(model, tools, prompt)
+    # agent = create_react_agent(model=model, tools=tools, prompt=prompt, checkpointer=checkpointer)
     return AgentExecutor(agent=agent, tools=tools)
 
 
@@ -56,21 +76,22 @@ if prompt := st.chat_input("What would you like to know about ICP plans?"):
     # Show thinking message while processing
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
-        message_placeholder.text("🤔 Thinking...")
+        message_placeholder.write("🤔 Thinking...")
 
         try:
             # Get response from agent
             response = agent_executor.invoke({"input": prompt})
+
             response_content = response["output"]
 
             # Update thinking message with actual response
-            message_placeholder.text(response_content)
+            message_placeholder.write(response_content)
 
             # Add assistant message to chat history
             st.session_state.messages.append({"role": "assistant", "content": response_content})
 
         except Exception as e:
-            message_placeholder.text(f"Sorry, I encountered an error: {str(e)}")
+            message_placeholder.write(f"Sorry, I encountered an error: {str(e)}")
             st.error(f"Error: {str(e)}")
 
 # Display chat history
